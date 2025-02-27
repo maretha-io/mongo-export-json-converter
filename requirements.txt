@@ -1,0 +1,3 @@
+# JSON Processing Libraries
+ijson==3.2.3   # Streaming JSON parser (for large files)
+ujson==5.8.0   # Faster JSON serialization/deserialization
