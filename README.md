@@ -18,7 +18,7 @@ A Python script to **stream-process large MongoDB JSON exports**, replacing `"af
 
 ## Usage
 
-```python src/json_processor.py tests/data/test_input.json tests/output/test_output.json```
+```python src/json_processor.py tests/data/test_input.ndjson tests/output/test_output.ndjson```
 
 
 ## Testing
