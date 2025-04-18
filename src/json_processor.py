@@ -5,16 +5,11 @@ VALID_TYPES = {"Policy", "Billing", "Payments"}
 
 
 def replace_prefix(obj, new_parent_id=None, new_ancestor_ids=None):
-    """
-    Recursively replace 'af:' and 'af_' prefixes with 'true:' and 'true_' in dictionary keys.
-    Also replaces 'ecm:parentId' and 'ecm:ancestorIds' values if provided.
-    """
     if isinstance(obj, dict):
         new_obj = {}
         for key, value in obj.items():
             new_key = key.replace("af:", "true:").replace("af_", "true_")
 
-            # Replace specific values
             if new_key == "ecm:parentId" and new_parent_id is not None:
                 value = new_parent_id
             elif new_key == "ecm:ancestorIds" and new_ancestor_ids is not None:
@@ -30,9 +25,6 @@ def replace_prefix(obj, new_parent_id=None, new_ancestor_ids=None):
 
 
 def process_ndjson(input_path, output_path, replacements):
-    """
-    Processes an NDJSON file, replacing prefixes and updating IDs based on type.
-    """
     with open(input_path, "r", encoding="utf-8") as infile, open(output_path, "w", encoding="utf-8") as outfile:
         for line in infile:
             if not line.strip():
@@ -44,50 +36,61 @@ def process_ndjson(input_path, output_path, replacements):
             if primary_type not in VALID_TYPES:
                 continue
 
-            parent_id = replacements[primary_type]["parentId"]
-            ancestor_ids = replacements[primary_type]["ancestorIds"]
+            replacement = replacements.get(primary_type, {})
+            parent_id = replacement.get("parentId")
+            ancestor_ids = replacement.get("ancestorIds")
 
             transformed = replace_prefix(obj, parent_id, ancestor_ids)
             outfile.write(json.dumps(transformed, ensure_ascii=False) + "\n")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Process and transform NDJSON with dynamic replacements.")
+    parser = argparse.ArgumentParser(description="Process and transform NDJSON files with key prefix replacements and optional ID updates.")
 
-    parser.add_argument("input_file", help="Input NDJSON file")
-    parser.add_argument("output_file", help="Output NDJSON file")
+    parser.add_argument("input_file", help="Path to input NDJSON file")
+    parser.add_argument("output_file", help="Path to output NDJSON file")
 
-    parser.add_argument("--policy-parent", required=True)
-    parser.add_argument("--policy-ancestors", required=True)
-    parser.add_argument("--billing-parent", required=True)
-    parser.add_argument("--billing-ancestors", required=True)
-    parser.add_argument("--payments-parent", required=True)
-    parser.add_argument("--payments-ancestors", required=True)
+    parser.add_argument("--policy-parent", help="Replacement for Policy ecm:parentId")
+    parser.add_argument("--policy-ancestors", help="Comma-separated list for Policy ecm:ancestorIds")
+
+    parser.add_argument("--billing-parent", help="Replacement for Billing ecm:parentId")
+    parser.add_argument("--billing-ancestors", help="Comma-separated list for Billing ecm:ancestorIds")
+
+    parser.add_argument("--payments-parent", help="Replacement for Payments ecm:parentId")
+    parser.add_argument("--payments-ancestors", help="Comma-separated list for Payments ecm:ancestorIds")
 
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def build_replacements(args):
+    def split_or_none(value):
+        return value.split(",") if value else None
 
-    replacements = {
+    return {
         "Policy": {
             "parentId": args.policy_parent,
-            "ancestorIds": args.policy_ancestors.split(","),
+            "ancestorIds": split_or_none(args.policy_ancestors),
         },
         "Billing": {
             "parentId": args.billing_parent,
-            "ancestorIds": args.billing_ancestors.split(","),
+            "ancestorIds": split_or_none(args.billing_ancestors),
         },
         "Payments": {
             "parentId": args.payments_parent,
-            "ancestorIds": args.payments_ancestors.split(","),
+            "ancestorIds": split_or_none(args.payments_ancestors),
         },
     }
 
-    print(f"📂 Input: {args.input_file}")
-    print(f"📁 Output: {args.output_file}")
-    for k, v in replacements.items():
-        print(f"🔁 {k} → parentId: {v['parentId']}, ancestorIds: {v['ancestorIds']}")
+
+if __name__ == "__main__":
+    args = parse_args()
+    replacements = build_replacements(args)
+
+    print(f"📂 Input file: {args.input_file}")
+    print(f"📁 Output file: {args.output_file}")
+
+    for primary_type in VALID_TYPES:
+        info = replacements[primary_type]
+        print(f"🔁 {primary_type} → parentId: {info['parentId']}, ancestorIds: {info['ancestorIds']}")
 
     process_ndjson(args.input_file, args.output_file, replacements)

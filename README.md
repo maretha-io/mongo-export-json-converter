@@ -26,7 +26,7 @@ A Python script to **stream-process large MongoDB JSON exports**, replacing `"af
 python src/json_processor.py tests/data/test_input.ndjson tests/output/test_output.ndjson \
     --policy-parent POLICY_PARENT_ID --policy-ancestors anc1,anc2 \
     --billing-parent BILLING_PARENT_ID --billing-ancestors anc3,anc4 \
-    --payment-parent PAYMENTS_PARENT_ID --payments-ancestors anc5,anc6
+    --payments-parent PAYMENTS_PARENT_ID --payments-ancestors anc5,anc6
 ```
 
 ## Testing
