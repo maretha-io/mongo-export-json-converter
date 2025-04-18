@@ -18,11 +18,27 @@ class TestJsonProcessing(unittest.TestCase):
         # Ensure output directory exists
         os.makedirs(os.path.join(cls.test_dir, "output"), exist_ok=True)
 
+        # Example replacements for test
+        cls.replacements = {
+            "Policy": {
+                "parentId": "test-policy-parent-id",
+                "ancestorIds": ["anc-policy-1", "anc-policy-2"],
+            },
+            "Billing": {
+                "parentId": "test-billing-parent-id",
+                "ancestorIds": ["anc-billing-1", "anc-billing-2"],
+            },
+            "Payments": {
+                "parentId": "test-payment-parent-id",
+                "ancestorIds": ["anc-payments-1", "anc-payments-2"],
+            },
+        }
+
     def test_process_ndjson(self):
         """Test processing a MongoDB-exported NDJSON file against expected NDJSON output."""
 
-        # Run the function
-        process_ndjson(self.input_path, self.output_path)
+        # Run the function with replacement data
+        process_ndjson(self.input_path, self.output_path, self.replacements)
 
         # Load processed output (NDJSON)
         with open(self.output_path, "r", encoding="utf-8") as output_file:
