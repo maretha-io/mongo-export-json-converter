@@ -37,8 +37,10 @@ class TestJsonProcessing(unittest.TestCase):
     def test_process_ndjson(self):
         """Test processing a MongoDB-exported NDJSON file against expected NDJSON output."""
 
+        migration_date = "2025-04-29T08:56:06.130Z"
+
         # Run the function with replacement data
-        process_ndjson(self.input_path, self.output_path, self.replacements)
+        process_ndjson(self.input_path, self.output_path, self.replacements, migration_date)
 
         # Load processed output (NDJSON)
         with open(self.output_path, "r", encoding="utf-8") as output_file:

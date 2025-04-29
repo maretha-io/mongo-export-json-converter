@@ -1,5 +1,6 @@
 import json
 import argparse
+import datetime
 
 VALID_TYPES = {"Policy", "Billing", "Payments"}
 
@@ -24,8 +25,8 @@ def replace_prefix(obj, new_parent_id=None, new_ancestor_ids=None):
     return obj
 
 
-def process_ndjson(input_path, output_path, replacements):
-    with open(input_path, "r", encoding="utf-8") as infile, open(output_path, "w", encoding="utf-8") as outfile:
+def process_ndjson(input_path, output_path, replacements, migration_date=None):
+    with (open(input_path, "r", encoding="utf-8") as infile, open(output_path, "w", encoding="utf-8") as outfile):
         for line in infile:
             if not line.strip():
                 continue
@@ -41,11 +42,25 @@ def process_ndjson(input_path, output_path, replacements):
             ancestor_ids = replacement.get("ancestorIds")
 
             transformed = replace_prefix(obj, parent_id, ancestor_ids)
+
+            # --- Add Migration facet ---
+            mixins = transformed.get("ecm:mixinTypes", [])
+            if "Migration" not in mixins:
+                mixins.append("Migration")
+                transformed["ecm:mixinTypes"] = mixins
+
+            # --- Add migration:migrationDate field ---
+            if migration_date is None:
+                migration_date = datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace(
+                    "+00:00", "Z")
+            transformed["migration:migrationDate"] = {"$date": migration_date}
+
             outfile.write(json.dumps(transformed, ensure_ascii=False) + "\n")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Process and transform NDJSON files with key prefix replacements and optional ID updates.")
+    parser = argparse.ArgumentParser(
+        description="Process and transform NDJSON files with key prefix replacements and optional ID updates.")
 
     parser.add_argument("input_file", help="Path to input NDJSON file")
     parser.add_argument("output_file", help="Path to output NDJSON file")
