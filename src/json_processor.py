@@ -50,9 +50,6 @@ def process_ndjson(input_path, output_path, replacements, migration_date=None):
                 transformed["ecm:mixinTypes"] = mixins
 
             # --- Add migration:migrationDate field ---
-            if migration_date is None:
-                migration_date = datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace(
-                    "+00:00", "Z")
             transformed["migration:migrationDate"] = {"$date": migration_date}
 
             outfile.write(json.dumps(transformed, ensure_ascii=False) + "\n")
@@ -108,4 +105,8 @@ if __name__ == "__main__":
         info = replacements[primary_type]
         print(f"🔁 {primary_type} → parentId: {info['parentId']}, ancestorIds: {info['ancestorIds']}")
 
-    process_ndjson(args.input_file, args.output_file, replacements)
+    migration_date = datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace(
+        "+00:00", "Z")
+    print(f"🕒 Migration Date -> {migration_date}")
+
+    process_ndjson(args.input_file, args.output_file, replacements, migration_date)
