@@ -104,9 +104,14 @@ if __name__ == "__main__":
     for primary_type in VALID_TYPES:
         info = replacements[primary_type]
         print(f"🔁 {primary_type} → parentId: {info['parentId']}, ancestorIds: {info['ancestorIds']}")
-
-    migration_date = datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace(
-        "+00:00", "Z")
+        
+    migration_date = (
+        datetime.datetime
+        .utcnow()                                           # naive UTC
+        .replace(tzinfo=datetime.timezone.utc)              # make it UTC-aware
+        .isoformat(timespec="milliseconds")
+        .replace("+00:00", "Z")
+    )
     print(f"🕒 Migration Date -> {migration_date}")
 
     process_ndjson(args.input_file, args.output_file, replacements, migration_date)
