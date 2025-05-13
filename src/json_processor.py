@@ -1,6 +1,6 @@
 import json
 import argparse
-import datetime
+from datetime import datetime
 
 VALID_TYPES = {"Policy", "Billing", "Payments"}
 
@@ -105,13 +105,8 @@ if __name__ == "__main__":
         info = replacements[primary_type]
         print(f"🔁 {primary_type} → parentId: {info['parentId']}, ancestorIds: {info['ancestorIds']}")
         
-    migration_date = (
-        datetime.datetime
-        .utcnow()                                           # naive UTC
-        .replace(tzinfo=datetime.timezone.utc)              # make it UTC-aware
-        .isoformat(timespec="milliseconds")
-        .replace("+00:00", "Z")
-    )
+    migration_date = datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+
     print(f"🕒 Migration Date -> {migration_date}")
 
     process_ndjson(args.input_file, args.output_file, replacements, migration_date)
